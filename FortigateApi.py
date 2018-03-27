@@ -2580,3 +2580,47 @@ class Fortigate:
             print 'del vpn:', vpn_name , 'res:', return_code
             if return_code != 200: return return_code
         return 200 
+
+    def FullBackup(self):
+        """
+        Gets the config for the logged in Fortigate. 
+
+        NOTE: For Fortigate version > 540 the Backup calls add 'scope':'global'
+        to the request params. Current implementation of get (ApiGet) does not
+        allow to change the params.
+
+        Parameters
+        ----------
+        
+        Returns
+        -------
+        Return the config json object
+        """
+
+        status = self.ApiGet('/api/v2/monitor/system/config/backup')
+
+        return status.content
+
+    def RestoreBackup(self, content):
+        """
+        Restores he Fortigate to a previous backup. 
+
+        Parameters
+        ----------
+        content: The output from a FullBackup
+
+        Returns
+        -------
+        Http status code: 200 if ok, 4xx if an error occurs
+        """
+        c = base64.b64encode(content)
+
+        status = self.ApiAdd('/api/v2/monitor/system/config/restore',
+                    data=
+                    {
+                        "source": "upload",
+                        "file_content": c
+                    }
+                )
+            
+        return(status)
